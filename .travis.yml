@@ -8,7 +8,9 @@ after_success:
 - sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST rm -r ~/server/auth-grpc/*
 - sshpass -p $SSH_PASS scp -rp -o stricthostkeychecking=no * $SSH_USER@$SSH_HOST:~/server/auth-grpc
 - sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST docker
-  build -t auth-grpc-server ~/server/auth-grpc ; docker stop auth-grpc ; docker
+  build -t auth-grpc-server ~/server/auth-grpc 
+- sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST docker stop auth-grpc 
+- sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST docker 
   run -e "JWT=$JWT" --name auth-grpc --rm --publish 32000:8080 auth-grpc-server
 env:
   global:
