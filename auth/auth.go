@@ -45,7 +45,7 @@ func (sm *AuthManager) Generate(ctx context.Context, in *auth_proto.TokenPayload
 	})
 	token, err := tokenJWT.SignedString([]byte(sm.token))
 	if err != nil {
-		sm.logger.Fatalw("Internal error",
+		sm.logger.Errorw("Internal error",
 			"err", err,
 		)
 		return nil, grpc.Errorf(codes.Internal, "Internal server error")
