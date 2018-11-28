@@ -1,6 +1,8 @@
 package user
 
 import (
+	"encoding/json"
+
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -24,10 +26,17 @@ func (sm *AuthManager) Check(ctx context.Context, in *auth_proto.Token) (*auth_p
 	_, err := jwt.ParseWithClaims(in.Token, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(sm.token), nil
 	})
+
 	if err != nil {
 		return &auth_proto.TokenChecked{Valid: false}, nil
 	}
-	return &auth_proto.TokenChecked{Valid: true}, nil
+
+	claimsJSON, err := json.Marshal(claims)
+	if err != nil {
+		return nil, grpc.Errorf(codes.Internal, "Internal server error")
+	}
+
+	return &auth_proto.TokenChecked{Valid: true, Claims: []byte(claimsJSON)}, nil
 }
 
 func (sm *AuthManager) Generate(ctx context.Context, in *auth_proto.TokenPayload) (*auth_proto.Token, error) {

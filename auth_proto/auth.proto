@@ -6,6 +6,7 @@ package auth_proto;
 
 message TokenChecked {
   bool Valid = 1;
+  bytes claims = 2;
 }
 
 message TokenPayload {
