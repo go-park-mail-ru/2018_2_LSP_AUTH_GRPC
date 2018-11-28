@@ -11,7 +11,7 @@ after_success:
   build -t auth-grpc-server ~/server/auth-grpc 
 - sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST docker stop auth-grpc 
 - sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST docker 
-  run -e "JWT=$JWT" --name auth-grpc --rm --publish 32000:8080 auth-grpc-server
+  run -e "JWT=$JWT" -d --name auth-grpc --rm --publish 32000:8080 auth-grpc-server
 env:
   global:
   - secure: dhgi/Eb0XunNobTKQuuPoqZnfZDCfpHjBF3lPq1kwENitTe2iRVzTxQuaK7qcMYhaC06YvN2K+HROvaNoIqSEAwFx/o8r/amawXYrjgcMi6zQmaa0h/+EeH457F0BjeM0UrwDB9Ovkyj5J6MWP8UdcdA1KB+1GVlAxjlvGjfHY+Ir+riuI5L0QwN008ri6aQiRI4obl+/2sdFs6Xf3LRi+u957GoidDNwnQcf1pe/S8FCAzDXkHDN1PZxCemkEuK1YVrJNALw7JuFGU8laiYZfqRMU0fXtl/szIxaiSArW7KnrtAA4fjTkJXjstoY9I06pgy3/my16ID+5mr0vBD+Sw1yJkCvV1va/KYegJrXdIDE39nWw1gm5zWdekGizCE5aR7bOY4uEquLUXBwg1qyR2YUyUYg2ixJ9GFHpwOwg6BWNG6l4vj009+MvqAc8Zm3sKX2u0bPmyfWMnGCYb8aGz4CrZt6knXq1kHEUtBMpbKWTf6kO+SYYgeg856nmzvGeVQqpFrNF4igp4qQ/k7MbeeSYQeRQhyRV6IKQMQB3wqDNSotkoRs7WjcVFjwGAOUtaHM1x1335asoThFyRrvESB2PHlemXM0WqgbTs9/S7c6bVIta+My2Z4JVMnIj7Xv1v5JQ8DPrQSCRlFIQzXX+KcZ8o4NvSjpmnTvk9gPno=
