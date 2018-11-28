@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+// protoc --go_out=plugins=grpc:. *.proto
+
+package auth_proto;
+
+message TokenChecked {
+  bool Valid = 1;
+}
+
+message TokenPayload {
+  int64 ID = 1;
+}
+
+message Token {
+  string Token = 1;
+}
+
+service AuthChecker {
+    rpc Check (Token) returns (TokenChecked) {}
+    rpc Generate (TokenPayload) returns (Token) {}
+}
+
