@@ -15,7 +15,7 @@ import (
 func main() {
 	logger, err := zap.NewProduction()
 	if err != nil {
-		fmt.Println("Can't create logger")
+		fmt.Println("Can't create logger", err)
 		return
 	}
 	defer logger.Sync()
@@ -32,6 +32,7 @@ func main() {
 		sugar.Fatalw("Can't create server",
 			"port", 8080,
 		)
+		return
 	}
 
 	server.Serve(lis)
