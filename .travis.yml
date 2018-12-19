@@ -1,12 +1,23 @@
 language: go
-go:
-- 1.11
-before_script:
+sudo: false
+matrix:
+  include:
+  - go: 1.x
+before_install:
+- go get github.com/mitchellh/gox
+- curl -L https://git.io/vp6lP -o install.sh && sh install.sh -b $GOPATH/bin
 - sudo apt-get install -qq sshpass
-script: 
+install:
+- 
+script:
+- go get -t -v ./...
+- gometalinter $(go list ./... | grep -v /vendor/)
+- go test -v -race ./...
+- CGO_ENABLED=0 gox -os="linux" -arch="amd64" -output="app.{{.OS}}.{{.Arch}}" -ldflags
+  "-X main.Rev=`git rev-parse --short HEAD`" -verbose ./...
 after_success:
-- sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST rm -r ~/server/auth-grpc/*
-- sshpass -p $SSH_PASS scp -rp -o stricthostkeychecking=no * $SSH_USER@$SSH_HOST:~/server/auth-grpc
+- sshpass -p $SSH_PASS scp -rp -o stricthostkeychecking=no app.linux.amd64 Dockerfile
+  $SSH_USER@$SSH_HOST:~/server/auth-grpc
 - sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST docker
   build -t auth-grpc-server ~/server/auth-grpc
 - sshpass -p $SSH_PASS ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST docker
@@ -20,3 +31,12 @@ env:
   - secure: Lsg12k1A1HSH1WT5hnR2Du4Y1RkJHa81xbYn4hlDoBFt/fOywcH19d68cyMfEv0SGsektIWxEbJLIWSG5Q+WJ/224Xc2wdVDnipGZspvMyOuWZma7SkuCZhHCrtAhSpTDUhdRqCcAVx01yUtDGM/kCdrdIpWCl/TKwGIu2t8Lb0tTNZa9JfgPV525SRKcJMkeCiCyTRCHDvqOkFP3FDvRrAqAyCCJ71OVNg7LNMJOY6KHJ2ZeUAnCh1apZ17beM8sP6z/6rdLKMuSu1QmIRv6xeJU+MryHSJmecdMsBv2fbtHT2rNgsGYlA4m66NLueVIQ8UtQXbRHaPsMdIfsJAUKSjXrukhTaarfWRvCPA4KO6vUfjWLmQnCalEyq5XFJVJZfrYSfiGu8F4J/+QKT3KJYq0vY3pL2y62v9B2FGdqer9TT0NvI/EjufyScIXdt0TM+uXzGiCFAbgAA9chS2mDhGqEHBS2Bx/nwxgzAOiDoqmju3epwIOdybD7R12LWfUM5loYFm9ekSaF+JC246b6Jka/UkqhrsngeLWrYhH8UCEQa7KmOnD7727/tVrLoR+q5WdxT0b0aWvF9CgqDNeyth2PEGzUQQ3ouLR8YHJDk/ClmtF2itLv1PTyLOPIMrZpzSJBK5ZPBSwg3qsu8DA3buBD7TPDAHdk8tJxHI+lQ=
   - secure: ECujoLodAmyTeESbxsozAVVjeImlZV11JwUc32r0zOuANkzE0davidD6tL5gIarTQsUcPJmO5V917oivQpjc5NjnJNZ6E37mRCpKQtpgvcMaKpCO3xgnVkVeKLkKyYrxWf/lIuqi93j6lYLtVDSW1TQn82X/2hiUn1Og2v9LP3YsFQ8kIqzY9tOFfcEZgUCB9YtQ43taS9CvjyErxKfMiqOiOhQmccBImOadTwEY9CIuVJNxB9tB/2MzcreuQKlZ+F5ZJoAqWpnT10oNYL503ibdlJfKxURM19Itogz/mu/1aqqNry6Y7nXapKERQdj3U2/lelvpLYVIUxRtdcKqhIVNJMYfx8eGVicvtxlbCYdhaqsI/BhHc6romy52AECP36Dv9vJH9+Ls1wwVy02lCScEwqdMzad1D1OY7kkCjM6z7v0uBvpLeDHubL8A9cp95PxBcMfk4X9MA6LuOcW1MPdTvHhWFmianSGV7z7DsgyWFBTL+ZfgztMuyssNz+7qWKPuxuxQu2ABI/ieah3xYdNa4lgnnno6b8d5a8onmT9b68DtP70fV4mwfyY78+B4Ou4q077bFB3RpF8cJJFlRHdfL572Ia+fSq8hKJVdNu/nBrN6l9gEaXRSGabbF5yOqgvA2QxyvsPvFU5c3Ba+Kr01arzlRmRDl6FtYLSwEWo=
   - secure: WTZm237MZmGChI7y2USo6a/z0hTJ0ZiFyabIMreVuRGovf9U2vz8g0AGqrVZ93AJoALNnK1XXqm15EeyIu6IX1ayDQ4QGofBbNqRILgVyBE4nmKkIxqXPS/DPH6ugZnT8cIdinLK7EDw8FBvidyKed1+ttvVWM5kT9jfVzonaM1SCF9IdWnDJrf7MEcrgECJQgkI6JSaRs0aUxu8FmTuQ6XcKGVYDKtnFpxMrTfui6axNkR7R19mthjckfPqcLnpsmjzVZ+a2hRqBZsCm1QX7RCXhvQYXufI/bL4AsuF51KnqhWq8vfhvQkqKJQFnOk0ISSCKMHTXNjC006o8np6kInybzLjEoHYyH0PrtlwMJ1MXoSpLJijtnRapNjIBwpHUSZQ8Wn+HbvDUvhsL5Ep/VN4wdELUcz1V7xPGRINRodHBoLBO2IFnHoyRP0VquM8P9RDPpy952pfCpuyRkpu6FKmu5ye7RsjpvrgZNyn1SlZw3NCIbUmDZNklh8Yx0YIA83xpuoYnroT+U7DecCkW5S4wpbahoXTTpVuh7mpbzn+oLwFVcEQdT1Kecys4gWenvaLHjyIzaQphnkKcp4ydAA4Dxg4c5pn4hy1nYNIhxFTrDALWeoUZEiFNDXgaB3FW5gTdlsXFZbtcuVFHlBOxfHzwUFZyCOD5RP7aK/R29Q=
+deploy:
+  provider: releases
+  api_key:
+    secure: RvvCSP2OTmrc7h6alo5s8boD4GC/rMCvN+ayMyxNrLw3v42G3ERMDcvw6Hb//QWeNSXIJVcD2Cs9wJySzcgC/tkt+zQOpwpTtpYEnnlH9tumP9ssvZRMRBmxtjLP+4M/jy0YSCHdAZ3RIJMD7El9GG31kFWAFuCmd36xW5WBJgDmz2VekoU37fEvsNjS2kWUr9nRyXtR5kKfc1RhSr6+yQVhiNdx929RoJt6suY0AbFYkN53D/Ms6E29zt9mSwr/B2OShyAjwGSB4EJAftFcnQD/9U07tFJBxIEQNMH/AB9PDlWHHQJYj4Cox5bm+cWtIwDkVPbfX0AV8Bq1QYdMuG4XJxv/ARQMOjwoyXkWoi7FX4A/klOjj34F5YINmX44iXwtkvVd3QhQFUvPBw63VA29bgkxRq8EJ5vlu3tXjROi7lstZ/ZuSnATEfe8FblYJ5Qdwp796GxEJ4R+eFDA6KWpT3khi90q9wCs/9ePlhctsQGEFaev3XJ5jIb+Pz7lcHqEzxsi8vdGmFis1s1ANY10RJOhFoN5aOGIYbuko75qtGPiedvMq+XBWD1pNnL5l5MLAPJXYCCkmBFIvONoGIzGgFgTZBC5HEloQk8WTDK0b6Z2lN3CxpHI5Dn2bzj/TrhzznQEnjsdoRI3ufPPVXXZLDX4D+6RN8W5w1aN6ZQ=
+  skip_cleanup: true
+  file:
+    - app.linux.amd64
+  on:
+    repo: go-park-mail-ru/2018_2_LSP_AUTH_GRPC
